@@ -285,6 +285,7 @@ defmodule Bamboo.SMTPAdapter do
     |> add_html_body(email, multi_part_delimiter)
     |> add_ending_multipart(multi_part_delimiter)
     |> add_inline_attachments(email, multi_part_mixed_delimiter)
+    |> add_attachments(email, multi_part_mixed_delimiter)
     |> add_ending_multipart(multi_part_mixed_delimiter)
   end
 
