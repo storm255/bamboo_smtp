@@ -197,7 +197,7 @@ defmodule Bamboo.SMTPAdapter do
     |> add_smtp_line("Content-Type: #{attachment.content_type}; name=\"#{attachment.filename}\"")
     |> add_smtp_line("Content-Disposition: inline; filename=\"#{attachment.filename}\"")
     |> add_smtp_line("Content-Transfer-Encoding: base64")
-    |> add_smtp_line("Content-ID: #{attachment.content_id}")
+    |> add_smtp_line("Content-ID: <#{attachment.content_id}@example.com>")
     |> add_smtp_line("X-Attachment-Id: #{random}")
   end
 
@@ -221,12 +221,12 @@ defmodule Bamboo.SMTPAdapter do
   end
 
   defp add_inline_attachment(nil, _), do: ""
-  defp add_inline_attachment(attachment, multi_part_related_delimiter) do
+  defp add_inline_attachment(inline_attachment, multi_part_related_delimiter) do
     ""
     |> add_multipart_delimiter(multi_part_related_delimiter)
-    |> add_inline_attachment_header(attachment)
+    |> add_inline_attachment_header(inline_attachment)
     |> add_smtp_line("")
-    |> add_attachment_body(attachment.data)
+    |> add_attachment_body(inline_attachment.data)
   end
 
   defp add_attachments(body, %Bamboo.Email{attachments: nil}, _), do: body
@@ -268,7 +268,6 @@ defmodule Bamboo.SMTPAdapter do
   defp body(email = %Bamboo.Email{}) do
     multi_part_delimiter = generate_multi_part_delimiter()
     multi_part_mixed_delimiter = generate_multi_part_delimiter()
-    multi_part_related_delimiter = generate_multi_part_delimiter()
     ""
     |> add_subject(email)
     |> add_from(email)
@@ -282,13 +281,10 @@ defmodule Bamboo.SMTPAdapter do
     |> add_multipart_delimiter(multi_part_mixed_delimiter)
     |> add_multipart_header(multi_part_delimiter)
     |> add_ending_header
-    |> add_multipart_related_header(multi_part_related_delimiter)
-    |> add_ending_header
     |> add_text_body(email, multi_part_delimiter)
     |> add_html_body(email, multi_part_delimiter)
     |> add_ending_multipart(multi_part_delimiter)
-    |> add_attachments(email, multi_part_mixed_delimiter)
-    |> add_inline_attachments(email, multi_part_related_delimiter)
+    |> add_inline_attachments(email, multi_part_mixed_delimiter)
     |> add_ending_multipart(multi_part_mixed_delimiter)
   end
 
